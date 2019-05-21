@@ -77,6 +77,7 @@ requires:
   debian:
     # Useful URL: https://github.com/mate-desktop/debian-packages
     # Useful URL: https://salsa.debian.org/debian-mate-team/mate-calc
+    - autopoint
     - clang
     - clang-tools
     - cppcheck
