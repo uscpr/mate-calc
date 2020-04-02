@@ -640,6 +640,13 @@ mp_factorize(const MPNumber *x)
 
     mp_abs(x, &value);
 
+    if (mp_is_prime(&value))
+    {
+        mp_set_from_mp(&value, factor);
+        list = g_list_append(list, factor);
+        return list;
+    }
+
     if (mp_is_zero(&value))
     {
         mp_set_from_mp(&value, factor);
@@ -770,4 +777,71 @@ mp_factorize_unit64(uint64_t n)
     mp_clear(&tmp);
 
     return list;
+}
+
+bool mp_is_prime(MPNumber *z)
+{
+    MPNumber tmp = mp_new();
+    MPNumber two = mp_new();
+    uint64_t l = 0;
+    bool is_prime = TRUE;
+    mp_set_from_integer(2, &two);
+
+    /* Verify that z is odd */
+    mp_modulus_divide(z, &two, &tmp);
+    if (mp_is_zero(&tmp))
+    {
+        mp_clear(&tmp);
+        mp_clear(&two);
+        return FALSE;
+    }
+
+    /* write n = z-1 as 2^l * q with q odd */
+    MPNumber q = mp_new();
+    MPNumber n = mp_new();
+    mp_add_integer(z, -1, &n);
+    mp_set_from_mp(&n, &q);
+    do
+    {
+        mp_divide_integer(&q, 2, &q);
+        mp_modulus_divide(&q, &two, &tmp);
+        l++;
+    } while (mp_is_zero(&tmp));
+
+    /* Miller-Rabin test to base a */
+    MPNumber one = mp_new();
+    MPNumber a = mp_new();
+    MPNumber b = mp_new();
+    mp_set_from_integer(1, &one);
+    mp_set_from_integer(1, &a);
+    for (int i = 1; i < 50 && i < mp_to_integer(z); i++)
+    {
+        mp_add_integer(&a, 1, &a);
+        mp_modular_exponentiation(&a, &q, z, &b);
+        if (mp_compare(&one, &b) == 0 || mp_compare(&n, &b) == 0)
+        {
+            continue;
+        }
+
+        bool is_witness = FALSE;
+        for (int j = 1; j < l; j++)
+        {
+            mp_modular_exponentiation(&b, &two, z, &b);
+            if (mp_compare(&b, &n) == 0)
+            {
+                is_witness = TRUE;
+                break;
+            }
+        }
+
+        if (!is_witness)
+        {
+            is_prime = FALSE;
+            break;
+        }
+    }
+    mp_clear(&n); mp_clear(&q); mp_clear(&one);
+    mp_clear(&tmp); mp_clear(&a); mp_clear(&b);
+
+    return is_prime;
 }

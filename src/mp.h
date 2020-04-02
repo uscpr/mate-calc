@@ -34,6 +34,7 @@
 #include <stdint.h>
 #include <glib.h>
 #include <glib/gi18n.h>
+#include <gmp.h>
 #include <mpfr.h>
 #include <mpc.h>
 
@@ -43,7 +44,7 @@
 #endif
 
 /* Precision of mpfr_t and mpc_t type objects */
-#define PRECISION 1000
+#define PRECISION 2000
 
 typedef struct
 {
@@ -220,6 +221,9 @@ void   mp_epowy(const MPNumber *x, MPNumber *z);
 GList* mp_factorize(const MPNumber *x);
 
 GList* mp_factorize_unit64 (uint64_t n);
+
+/* Returns TRUE if z is strong pseudoprime */
+bool   mp_is_prime(MPNumber *z);
 
 /* Sets z = x */
 void   mp_set_from_mp(const MPNumber *x, MPNumber *z);
