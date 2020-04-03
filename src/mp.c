@@ -640,12 +640,6 @@ mp_factorize(const MPNumber *x)
 
     mp_abs(x, &value);
 
-    if (mp_is_prime(&value))
-    {
-        mp_set_from_mp(&value, factor);
-        list = g_list_append(list, factor);
-        return list;
-    }
 
     if (mp_is_zero(&value))
     {
@@ -696,6 +690,14 @@ mp_factorize(const MPNumber *x)
     mp_sqrt(&value, &root);
     while (mp_is_less_equal(&divisor, &root))
     {
+
+        if (mp_is_prime(&value))
+        {
+            mp_set_from_mp(&value, factor);
+            list = g_list_append(list, factor);
+            return list;
+        }    
+
         mp_divide(&value, &divisor, &tmp);
         if (mp_is_integer(&tmp))
         {
@@ -754,6 +756,14 @@ mp_factorize_unit64(uint64_t n)
 
     for (uint64_t divisor = 3; divisor <= n / divisor; divisor +=2)
     {
+        MPNumber value = mp_new();
+        mp_set_from_integer(n, &value);
+        if (mp_is_prime(&value))
+        {
+            mp_set_from_mp(&value, factor);
+            list = g_list_append(list, factor);
+            return list;
+        }    
         while (n % divisor == 0)
         {
             n /= divisor;
